@@ -1,51 +1,119 @@
-1.Data cleaning including missing values, outliers and multi-collinearity.
+##Fraud Detection Using Machine Learning
+#Project Overview
+This project focuses on detecting fraudulent financial transactions using machine learning techniques.
+The goal is to build an interpretable and high-performing fraud detection model on a highly imbalanced dataset, while preserving real fraud signals and minimizing false positives.
 
-Missing values: No null values were found in the dataset. Rows where amount = 0 were dropped to ensure valid transactions.
-Outliers: Large number of outliers detected (e.g., amount = 338k, oldbalanceOrg = 1.1M). Instead of removing all, engineered features were created (ratios, errors) to handle extreme values without discarding valuable fraud signals.
-Multicollinearity: Highly correlated features were removed (newbalanceOrig, newbalanceDest, day, err_org). This avoided redundant information in modeling.
+#Dataset & Problem Statement
+Source: Kaggle (synthetic financial transaction data)
+Challenge:
+  Severe class imbalance
+  Presence of extreme outliers
+  Risk of multicollinearity
+Objective:
+  Accurately identify fraudulent transactions
+  Prioritize recall and precision over raw accuracy
 
-2.Describe your fraud detection model in elaboration.
+#Data Cleaning & Preprocessing
+  Missing Values
+  No null values were present in the dataset
+  Transactions with amount = 0 were removed to ensure data validity
 
-Pipeline:
-Preprocessing (drop IDs, one-hot encoding transaction type).
-Feature engineering: delta_org, delta_dest, err_org, err_dest, ratios (amt_to_oldbal, amt_to_destold), time features (day, hour), merchant flag.
-Feature selection: applied Lasso (L1), which reduced features to two strongest predictors → delta_org, amt_to_destold.
-Train-test split with stratification, scaling with StandardScaler.
-Models trained: Logistic Regression, Random Forest, XGBoost.
-Best model: Random Forest, chosen for best trade-off between precision & recall.
+#Outliers
+Significant outliers were detected (e.g., transaction amounts up to 338K, balances exceeding 1M)
+Instead of removing all outliers, feature engineering was applied to preserve fraud-related signals:
+   Balance deltas
+   Ratio-based features
+This approach avoids losing rare but meaningful fraud patterns
 
-3.How did you select variables to be included in the model?
+#Multicollinearity
+Highly correlated variables were identified and removed:
+   1)newbalanceOrig
+   2)newbalanceDest
+   3)day
+   4)err_org
+This reduced redundancy and improved model stability
 
-Started with original + engineered features.
-Removed constant and highly correlated variables.
-Dropped weakly correlated features with fraud.
-Applied Lasso regression, which shrank coefficients and retained only delta_org (68% importance) and amt_to_destold (32% importance).
-Final model trained only on these two features.
+#Feature Engineering
+Created domain-driven features to capture fraud behavior:
+delta_org: Difference between old and new origin balance
+delta_dest: Difference between old and new destination balance
+err_org, err_dest: Transaction inconsistencies
+Ratio features:
+   amt_to_oldbal
+   amt_to_destold
+Time-based features:
+   Transaction hour, day
+Merchant flag for transaction type
 
-4.Demonstrate the performance of the model by using best set of tools.
+#Feature Selection
+Started with original + engineered features
+Removed:
+ 1)Constant variables
+ 2)Highly correlated features
+ 3)Weakly correlated predictors
+Applied Lasso Regression (L1 Regularization):
+  Reduced feature space to two strongest predictors:
+  -delta_org → 68% importance
+  -amt_to_destold → 32% importance
+Final models were trained using only these two features for interpretability and robustness
 
-To demonstrate model performance on this highly imbalanced fraud dataset, Precision–Recall AUC, F1-score, and confusion matrices were used as primary evaluation tools. Although Logistic Regression and XGBoost achieved high ROC-AUC values, Random Forest outperformed them in PR-AUC (0.53) and F1-score (0.58), while detecting the highest number of fraud cases. Therefore, Random Forest is the most suitable model for deployment.
+#Model Pipeline
+   Dropped identifiers and non-informative columns
+   One-hot encoded transaction types
+   Train-test split with stratification
+   Feature scaling using StandardScaler
 
-5.What are the key factors that predict fraudulent customer?
+#Models trained:
+  Logistic Regression
+  Random Forest
+  XGBoost
 
-From Lasso selection + Random Forest importance + SHAP analysis, the two most predictive factors are: delta_org=difference between old balance and new balance of origin account (fraud often creates inconsistencies). amt_to_destold=ratio of transaction amount to old destination balance (suspicious when transfer is disproportionately large). delta_org contributes 68% and amt_to_destold 32% to fraud prediction.
+#Model Evaluation
+ Given the imbalanced nature of fraud detection, the following metrics were prioritized:
+      Precision–Recall AUC
+      F1-score
+      Confusion Matrix
 
-6.Do these factors make sense? If yes, How? If not, How not?
+#Results Summary
+Model	                 PR-AUC	          F1-score	 Observation
+Logistic Regression	  High ROC-AUC	    Moderate	 Missed many fraud cases
+XGBoost	              High ROC-AUC    	Good	    Balanced but less recall
+Random Forest	        0.53	            0.58	    Best fraud detection performance
 
-Yes, they align with fraud patterns: Fraud often leaves mismatched balances (delta_org). Fraud transactions are large relative to account balances (amt_to_destold). These are consistent with domain knowledge: fraudsters exploit cash-out/transfer anomalies.
+Random Forest was selected due to its superior balance between precision and recall and highest fraud capture rate.
 
-7.What kind of prevention should be adopted while company update its infrastructure?
+#Key Fraud Predictors
+Based on Lasso selection, Random Forest importance, and SHAP analysis, the most influential features are:
+->delta_org (68%)
+   1)Inconsistencies between old and new balances
+   2)Common indicator of fraudulent manipulation
+->amt_to_destold (32%)
+   1)Large transaction amounts relative to destination balance
+   2)Signals abnormal transfer behavior
+These factors align strongly with real-world fraud patterns.
 
-Real-time monitoring of flagged transactions using Random Forest scores + rules.
-Block multiple rapid transactions.
-Device/IP fingerprinting for unusual access.
-Continuous model retraining and drift monitoring.
+#Do These Factors Make Sense?
+Yes.
+These predictors align with known financial fraud patterns such as balance inconsistencies and unusually large transfers.
 
-8.Assuming these actions have been implemented, how would you determine if they work?
+#Fraud Prevention Recommendations
+1)Real-time transaction monitoring using Random Forest risk scores
+2)Velocity checks for multiple rapid transactions
+3)Device and IP fingerprinting
+4)Continuous model retraining and data drift monitoring
 
-Track fraud KPIs:
-   Reduction in fraud losses ($ value).
-   Increase in recall (fraud caught) without drastic drop in precision.
-   False positive rate (customer friction).
-Re-check feature distributions, fraud patterns, recalibrate thresholds.
-Success = lower fraud losses, stable customer experience, and adaptable system.
+#Measuring Success After Deployment
+Effectiveness can be evaluated using:
+     Reduction in fraud-related financial losses
+     Improved recall without significant precision drop
+     Stable false positive rate to avoid customer friction
+     Monitoring feature distribution shifts and recalibrating thresholds
+Success = Lower fraud loss + stable customer experience + adaptive system
+
+#Tools & Technologies
+Python
+Pandas, NumPy
+scikit-learn
+XGBoost
+SHAP
+Matplotlib, Seaborn
