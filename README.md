@@ -134,5 +134,4 @@ Model effectiveness can be evaluated through:
 - Demonstrates a complete end-to-end machine learning pipeline
 - Strong alignment with industry fraud detection practices
 
-SHAP
-Matplotlib, Seaborn
+
