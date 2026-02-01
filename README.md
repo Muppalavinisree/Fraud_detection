@@ -84,9 +84,9 @@ Due to the imbalanced nature of the dataset, the following metrics were prioriti
 ### Performance Summary
 Model                   PR-AUC           F1-score      Remarks 
 
-Logistic Regression    High ROC-AUC     Moderate      Missed many fraud cases 
-XGBoost                High ROC-AUC      Good         Balanced performance 
-Random Forest           0.53             0.58         Best fraud detection capability 
+Logistic Regression     0.46              0.51         Missed many fraud cases 
+XGBoost                 0.35              0.42         Balanced performance 
+Random Forest           0.53              0.58         Best fraud detection capability 
 
 Random Forest was selected as the final model due to its superior balance between precision and recall.
 
